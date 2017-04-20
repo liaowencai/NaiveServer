@@ -12,7 +12,7 @@
 #include <sys/errno.h>
 
 #include "locker.h"
-#include "threadpoll.h"
+#include "threadpool.h"
 #include "http_conn.h"
 
 #define MAX_FD 65536
@@ -42,14 +42,16 @@ void show_error(int connfd, const char* info)
 
 int main(int argc, char* argv[])
 {
-	if (argc <= 2)
+	// 不再根据命令行获取本机ip地址和端口号port
+	/*if (argc <= 2)
 	{
 		printf("usage: %s ip_address port_nubmer\n", basename(argv[0]));
 		return 1;
-	}
+	}*/
 	
-	const char* ip = argv[1];
-	int port = atoi(argv[2]);
+
+	/*const char* ip = argv[1];
+	int port = atoi(argv[2]);*/
 
 	// 忽略SIGPIPE信号
 	// 当客户端close一个连接时，若server端接着发数据。
@@ -85,8 +87,8 @@ int main(int argc, char* argv[])
 	struct sockaddr_in address;
 	bzero(&address, sizeof(address));
 	address.sin_family = AF_INET;
-	inet_pton(AF_INET, ip, &address.sin_addr);
-	address.sin_port = htons(port);
+	address.sin_addr.s_addr = htonl(INADDR_ANY);	// 绑定默认的ip地址
+	address.sin_port = htons(80); // 指定端口号为HTTP 80端口
 
 	ret = bind(listenfd, reinterpret_cast<struct sockaddr*>(&address), sizeof(address));
 	assert(ret >= 0);
